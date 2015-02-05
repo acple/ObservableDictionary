@@ -12,7 +12,7 @@ namespace Acple.Reactive
     public class ObservableDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, IObservable<TValue>>, IObservable<KeyValuePair<TKey, TValue>>, IDisposable
     {
         private readonly ConcurrentDictionary<TKey, Element> dictionary;
-        private readonly Subject<IObservable<KeyValuePair<TKey, TValue>>> observables;
+        private readonly Subject<IObservable<KeyValuePair<TKey, TValue>>> subject;
         private readonly IObservable<KeyValuePair<TKey, TValue>> notifier;
         private readonly TValue initial;
         private bool isDisposed;
@@ -83,18 +83,18 @@ namespace Acple.Reactive
         private Element CreateElement(TKey key, TValue value)
         {
             var element = new Element(value);
-            this.observables.OnNext(element.Subject.Select(x => new KeyValuePair<TKey, TValue>(key, x)));
+            this.subject.OnNext(element.Subject.Select(x => new KeyValuePair<TKey, TValue>(key, x)));
             return element;
         }
 
         public ObservableDictionary(TValue initial = default(TValue))
         {
             this.dictionary = new ConcurrentDictionary<TKey, Element>();
-            this.observables = new Subject<IObservable<KeyValuePair<TKey, TValue>>>();
+            this.subject = new Subject<IObservable<KeyValuePair<TKey, TValue>>>();
             this.notifier = Observable.Defer<IObservable<KeyValuePair<TKey, TValue>>>(() =>
                 this.dictionary.Select(x => x.Value.Subject.Skip(1).Select(y => new KeyValuePair<TKey, TValue>(x.Key, y)))
                     .ToObservable(DefaultScheduler.Instance))
-                .Merge(this.observables).Merge().Catch(Observable.Empty<KeyValuePair<TKey, TValue>>()).Publish().RefCount();
+                .Merge(this.subject).Merge().Catch(Observable.Empty<KeyValuePair<TKey, TValue>>()).Publish().RefCount();
             this.initial = initial;
             this.isDisposed = false;
         }
@@ -111,8 +111,8 @@ namespace Acple.Reactive
 
             foreach (var key in this.dictionary.Keys)
                 this.Remove(key);
-            this.observables.OnCompleted();
-            this.observables.Dispose();
+            this.subject.OnCompleted();
+            this.subject.Dispose();
         }
 
         public int Count { get { return this.dictionary.Count; } }
