@@ -17,15 +17,17 @@ namespace Acple.Reactive
         private readonly TValue initial;
         private bool isDisposed;
 
-        private class Element : IDisposable
+        private struct Element : IDisposable
         {
-            public CompositeDisposable Disposable { get; private set; }
-            public BehaviorSubject<TValue> Subject { get; private set; }
+            private readonly CompositeDisposable disposable;
+            private readonly BehaviorSubject<TValue> subject;
+            public CompositeDisposable Disposable { get { return this.disposable; } }
+            public BehaviorSubject<TValue> Subject { get { return this.subject; } }
 
             public Element(TValue value)
             {
-                this.Disposable = new CompositeDisposable();
-                this.Subject = new BehaviorSubject<TValue>(value);
+                this.disposable = new CompositeDisposable();
+                this.subject = new BehaviorSubject<TValue>(value);
             }
 
             public void Dispose()
