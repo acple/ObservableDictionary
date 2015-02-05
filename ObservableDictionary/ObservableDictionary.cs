@@ -93,7 +93,7 @@ namespace Acple.Reactive
             this.observables = new Subject<IObservable<KeyValuePair<TKey, TValue>>>();
             this.notifier = Observable.Defer<IObservable<KeyValuePair<TKey, TValue>>>(() =>
                 this.dictionary.Select(x => x.Value.Subject.Skip(1).Select(y => new KeyValuePair<TKey, TValue>(x.Key, y)))
-                    .ToObservable(ThreadPoolScheduler.Instance))
+                    .ToObservable(DefaultScheduler.Instance))
                 .Merge(this.observables).Merge().Catch(Observable.Empty<KeyValuePair<TKey, TValue>>()).Publish().RefCount();
             this.initial = initial;
             this.isDisposed = false;
