@@ -19,15 +19,13 @@ namespace Acple.Reactive
 
         private struct Element : IDisposable
         {
-            private readonly CompositeDisposable disposable;
-            private readonly BehaviorSubject<TValue> subject;
-            public CompositeDisposable Disposable { get { return this.disposable; } }
-            public BehaviorSubject<TValue> Subject { get { return this.subject; } }
+            public CompositeDisposable Disposable { get; }
+            public BehaviorSubject<TValue> Subject { get; }
 
             public Element(TValue value)
             {
-                this.disposable = new CompositeDisposable();
-                this.subject = new BehaviorSubject<TValue>(value);
+                this.Disposable = new CompositeDisposable();
+                this.Subject = new BehaviorSubject<TValue>(value);
             }
 
             public void Dispose()
@@ -53,10 +51,7 @@ namespace Acple.Reactive
             element.Subject.OnNext(value);
         }
 
-        public void Add(TKey key, IObservable<TValue> source)
-        {
-            SetSource(key, source, false);
-        }
+        public void Add(TKey key, IObservable<TValue> source) => SetSource(key, source, false);
 
         public bool Remove(TKey key)
         {
@@ -93,7 +88,7 @@ namespace Acple.Reactive
         {
             this.dictionary = new ConcurrentDictionary<TKey, Element>();
             this.subject = new Subject<IObservable<KeyValuePair<TKey, TValue>>>();
-            this.notifier = Observable.Defer<IObservable<KeyValuePair<TKey, TValue>>>(() =>
+            this.notifier = Observable.Defer(() =>
                 this.dictionary.Select(x => x.Value.Subject.Skip(1).Select(y => new KeyValuePair<TKey, TValue>(x.Key, y)))
                     .ToObservable(DefaultScheduler.Instance))
                 .Merge(this.subject).Merge().Catch(Observable.Empty<KeyValuePair<TKey, TValue>>()).Publish().RefCount();
@@ -101,10 +96,7 @@ namespace Acple.Reactive
             this.isDisposed = false;
         }
 
-        public IDisposable Subscribe(IObserver<KeyValuePair<TKey, TValue>> observer)
-        {
-            return this.notifier.Subscribe(observer);
-        }
+        public IDisposable Subscribe(IObserver<KeyValuePair<TKey, TValue>> observer) => this.notifier.Subscribe(observer);
 
         public void Dispose()
         {
@@ -117,28 +109,19 @@ namespace Acple.Reactive
             this.subject.Dispose();
         }
 
-        public int Count { get { return this.dictionary.Count; } }
+        public int Count => this.dictionary.Count;
 
-        public IEnumerable<TKey> Keys { get { return this.dictionary.Keys; } }
+        public IEnumerable<TKey> Keys => this.dictionary.Keys;
 
-        public IEnumerable<IObservable<TValue>> Values { get { return this.dictionary.Values.Select(x => x.Subject.AsObservable()); } }
+        public IEnumerable<IObservable<TValue>> Values => this.dictionary.Values.Select(x => x.Subject.AsObservable());
 
-        public bool ContainsKey(TKey key)
-        {
-            return this.dictionary.ContainsKey(key);
-        }
+        public bool ContainsKey(TKey key) => this.dictionary.ContainsKey(key);
 
-        public IEnumerator<KeyValuePair<TKey, IObservable<TValue>>> GetEnumerator()
-        {
-            return this.dictionary
+        public IEnumerator<KeyValuePair<TKey, IObservable<TValue>>> GetEnumerator() => this.dictionary
                 .Select(x => new KeyValuePair<TKey, IObservable<TValue>>(x.Key, x.Value.Subject.AsObservable()))
                 .GetEnumerator();
-        }
 
-        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
+        System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
     }
 
     public static class ObservableDictionaryExtensions
@@ -149,15 +132,11 @@ namespace Acple.Reactive
             return source.ToMergeObservableDictionary(dictionary);
         }
 
-        public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, TValue initial = default(TValue))
-        {
-            return source.ToDictionary(keySelector).ToObservableDictionary(initial);
-        }
+        public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, TValue initial = default(TValue)) =>
+            source.ToDictionary(keySelector).ToObservableDictionary(initial);
 
-        public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, TValue initial = default(TValue))
-        {
-            return source.ToDictionary(keySelector, elementSelector).ToObservableDictionary(initial);
-        }
+        public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, TValue initial = default(TValue)) =>
+            source.ToDictionary(keySelector, elementSelector).ToObservableDictionary(initial);
 
         public static ObservableDictionary<TKey, TValue> ToUpdateObservableDictionary<TKey, TValue>(this IDictionary<TKey, TValue> source, ObservableDictionary<TKey, TValue> dictionary)
         {
@@ -166,15 +145,11 @@ namespace Acple.Reactive
             return source.ToMergeObservableDictionary(dictionary);
         }
 
-        public static ObservableDictionary<TKey, TValue> ToUpdateObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, ObservableDictionary<TKey, TValue> dictionary)
-        {
-            return source.ToDictionary(keySelector).ToUpdateObservableDictionary(dictionary);
-        }
+        public static ObservableDictionary<TKey, TValue> ToUpdateObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, ObservableDictionary<TKey, TValue> dictionary) =>
+            source.ToDictionary(keySelector).ToUpdateObservableDictionary(dictionary);
 
-        public static ObservableDictionary<TKey, TValue> ToUpdateObservableDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, ObservableDictionary<TKey, TValue> dictionary)
-        {
-            return source.ToDictionary(keySelector, elementSelector).ToUpdateObservableDictionary(dictionary);
-        }
+        public static ObservableDictionary<TKey, TValue> ToUpdateObservableDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, ObservableDictionary<TKey, TValue> dictionary) =>
+            source.ToDictionary(keySelector, elementSelector).ToUpdateObservableDictionary(dictionary);
 
         public static ObservableDictionary<TKey, TValue> ToMergeObservableDictionary<TKey, TValue>(this IDictionary<TKey, TValue> source, ObservableDictionary<TKey, TValue> dictionary)
         {
@@ -183,14 +158,10 @@ namespace Acple.Reactive
             return dictionary;
         }
 
-        public static ObservableDictionary<TKey, TValue> ToMergeObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, ObservableDictionary<TKey, TValue> dictionary)
-        {
-            return source.ToDictionary(keySelector).ToMergeObservableDictionary(dictionary);
-        }
+        public static ObservableDictionary<TKey, TValue> ToMergeObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, ObservableDictionary<TKey, TValue> dictionary) =>
+            source.ToDictionary(keySelector).ToMergeObservableDictionary(dictionary);
 
-        public static ObservableDictionary<TKey, TValue> ToMergeObservableDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, ObservableDictionary<TKey, TValue> dictionary)
-        {
-            return source.ToDictionary(keySelector, elementSelector).ToMergeObservableDictionary(dictionary);
-        }
+        public static ObservableDictionary<TKey, TValue> ToMergeObservableDictionary<TSource, TKey, TValue>(this IEnumerable<TSource> source, Func<TSource, TKey> keySelector, Func<TSource, TValue> elementSelector, ObservableDictionary<TKey, TValue> dictionary) =>
+            source.ToDictionary(keySelector, elementSelector).ToMergeObservableDictionary(dictionary);
     }
 }
