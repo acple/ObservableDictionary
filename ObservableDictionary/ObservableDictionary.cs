@@ -118,8 +118,8 @@ namespace Acple.Reactive
         public bool ContainsKey(TKey key) => this.dictionary.ContainsKey(key);
 
         public IEnumerator<KeyValuePair<TKey, IObservable<TValue>>> GetEnumerator() => this.dictionary
-                .Select(x => new KeyValuePair<TKey, IObservable<TValue>>(x.Key, x.Value.Subject.AsObservable()))
-                .GetEnumerator();
+            .Select(x => new KeyValuePair<TKey, IObservable<TValue>>(x.Key, x.Value.Subject.AsObservable()))
+            .GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
     }
