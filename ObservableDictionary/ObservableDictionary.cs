@@ -126,11 +126,8 @@ namespace Acple.Reactive
 
     public static class ObservableDictionaryExtensions
     {
-        public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TKey, TValue>(this IDictionary<TKey, TValue> source, TValue initial = default(TValue))
-        {
-            var dictionary = new ObservableDictionary<TKey, TValue>(initial);
-            return source.ToMergeObservableDictionary(dictionary);
-        }
+        public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TKey, TValue>(this IDictionary<TKey, TValue> source, TValue initial = default(TValue)) =>
+            source.ToMergeObservableDictionary(new ObservableDictionary<TKey, TValue>(initial));
 
         public static ObservableDictionary<TKey, TValue> ToObservableDictionary<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> keySelector, TValue initial = default(TValue)) =>
             source.ToDictionary(keySelector).ToObservableDictionary(initial);
