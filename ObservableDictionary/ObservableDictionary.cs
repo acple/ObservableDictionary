@@ -42,6 +42,8 @@ namespace Acple.Reactive
             set { SetSource(key, value, true); }
         }
 
+        public void Add(TKey key, IObservable<TValue> source) => SetSource(key, source, false);
+
         public void Add(TKey key, TValue value)
         {
             Element element;
@@ -50,8 +52,6 @@ namespace Acple.Reactive
                     return;
             element.Subject.OnNext(value);
         }
-
-        public void Add(TKey key, IObservable<TValue> source) => SetSource(key, source, false);
 
         public bool Remove(TKey key)
         {
@@ -96,8 +96,6 @@ namespace Acple.Reactive
             this.isDisposed = false;
         }
 
-        public IDisposable Subscribe(IObserver<KeyValuePair<TKey, TValue>> observer) => this.notifier.Subscribe(observer);
-
         public void Dispose()
         {
             if (this.isDisposed) return;
@@ -108,6 +106,8 @@ namespace Acple.Reactive
             this.subject.OnCompleted();
             this.subject.Dispose();
         }
+
+        public IDisposable Subscribe(IObserver<KeyValuePair<TKey, TValue>> observer) => this.notifier.Subscribe(observer);
 
         public int Count => this.dictionary.Count;
 
