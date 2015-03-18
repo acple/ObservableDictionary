@@ -7,7 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace Acple.Reactive
+namespace Reactive.Collections
 {
     public class ObservableDictionary<TKey, TValue> : IReadOnlyDictionary<TKey, IObservable<TValue>>, IObservable<KeyValuePair<TKey, TValue>>, IDisposable
     {

@@ -7,7 +7,7 @@
     <ProjectGuid>{7022AADA-DADF-45BA-A158-96DFC9898B49}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Acple.Reactive</RootNamespace>
+    <RootNamespace>Reactive.Collections</RootNamespace>
     <AssemblyName>ObservableDictionary</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
