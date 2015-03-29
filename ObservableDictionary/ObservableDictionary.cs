@@ -21,11 +21,13 @@ namespace Reactive.Collections
         {
             public CompositeDisposable Disposable { get; }
             public BehaviorSubject<TValue> Subject { get; }
+            public IObservable<TValue> Observable { get; }
 
             public Element(TValue value)
             {
                 this.Disposable = new CompositeDisposable();
                 this.Subject = new BehaviorSubject<TValue>(value);
+                this.Observable = this.Subject.AsObservable();
             }
 
             public void Dispose()
@@ -38,7 +40,7 @@ namespace Reactive.Collections
 
         public IObservable<TValue> this[TKey key]
         {
-            get { return this.dictionary.GetOrAdd(key, x => CreateElement(x, this.initial)).Subject.AsObservable(); }
+            get { return this.dictionary.GetOrAdd(key, x => CreateElement(x, this.initial)).Observable; }
             set { SetSource(key, value, true); }
         }
 
@@ -66,7 +68,7 @@ namespace Reactive.Collections
         {
             Element element;
             var result = this.dictionary.TryGetValue(key, out element);
-            value = (result) ? element.Subject.AsObservable() : null;
+            value = (result) ? element.Observable : null;
             return result;
         }
 
@@ -117,12 +119,12 @@ namespace Reactive.Collections
 
         public IEnumerable<TKey> Keys => this.dictionary.Keys;
 
-        public IEnumerable<IObservable<TValue>> Values => this.dictionary.Values.Select(x => x.Subject.AsObservable());
+        public IEnumerable<IObservable<TValue>> Values => this.dictionary.Values.Select(x => x.Observable);
 
         public bool ContainsKey(TKey key) => this.dictionary.ContainsKey(key);
 
         public IEnumerator<KeyValuePair<TKey, IObservable<TValue>>> GetEnumerator() => this.dictionary
-            .Select(x => new KeyValuePair<TKey, IObservable<TValue>>(x.Key, x.Value.Subject.AsObservable()))
+            .Select(x => new KeyValuePair<TKey, IObservable<TValue>>(x.Key, x.Value.Observable))
             .GetEnumerator();
 
         System.Collections.IEnumerator System.Collections.IEnumerable.GetEnumerator() => this.GetEnumerator();
