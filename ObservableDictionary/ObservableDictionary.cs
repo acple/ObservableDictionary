@@ -107,6 +107,10 @@ namespace Reactive.Collections
             this.subject.Dispose();
         }
 
+        public IReadOnlyDictionary<TKey, TValue> GetCurrent() => this.dictionary.ToDictionary(x => x.Key, x => x.Value.Subject.Value);
+
+        public TValue GetCurrent(TKey key) => this.dictionary[key].Subject.Value;
+
         public IDisposable Subscribe(IObserver<KeyValuePair<TKey, TValue>> observer) => this.notifier.Subscribe(observer);
 
         public int Count => this.dictionary.Count;
