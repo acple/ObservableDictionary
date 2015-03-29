@@ -14,7 +14,7 @@ namespace Reactive.Collections
         private readonly ConcurrentDictionary<TKey, Element> dictionary;
         private readonly Subject<IObservable<KeyValuePair<TKey, TValue>>> subject;
         private readonly IObservable<KeyValuePair<TKey, TValue>> notifier;
-        private readonly TValue initial;
+        private readonly Func<TKey, Element> initializer;
         private bool isDisposed;
 
         private struct Element : IDisposable
@@ -40,7 +40,7 @@ namespace Reactive.Collections
 
         public IObservable<TValue> this[TKey key]
         {
-            get { return this.dictionary.GetOrAdd(key, x => CreateElement(x, this.initial)).Observable; }
+            get { return this.dictionary.GetOrAdd(key, this.initializer).Observable; }
             set { SetSource(key, value, true); }
         }
 
@@ -74,7 +74,7 @@ namespace Reactive.Collections
 
         private void SetSource(TKey key, IObservable<TValue> source, bool reset)
         {
-            var element = this.dictionary.GetOrAdd(key, x => CreateElement(x, this.initial));
+            var element = this.dictionary.GetOrAdd(key, this.initializer);
             if (reset) element.Disposable.Clear();
             element.Disposable.Add(source.Subscribe(element.Subject.OnNext, ex => { }));
         }
@@ -90,11 +90,12 @@ namespace Reactive.Collections
         {
             this.dictionary = new ConcurrentDictionary<TKey, Element>();
             this.subject = new Subject<IObservable<KeyValuePair<TKey, TValue>>>();
-            this.notifier = Observable.Defer(() =>
-                this.dictionary.Select(x => x.Value.Subject.Skip(1).Select(y => new KeyValuePair<TKey, TValue>(x.Key, y)))
+            this.notifier = Observable
+                .Defer(() => this.dictionary
+                    .Select(element => element.Value.Subject.Skip(1).Select(x => new KeyValuePair<TKey, TValue>(element.Key, x)))
                     .ToObservable(DefaultScheduler.Instance))
                 .Merge(this.subject).Merge().Publish().RefCount();
-            this.initial = initial;
+            this.initializer = key => CreateElement(key, initial);
             this.isDisposed = false;
         }
 
@@ -102,7 +103,6 @@ namespace Reactive.Collections
         {
             if (this.isDisposed) return;
             this.isDisposed = true;
-
             foreach (var key in this.dictionary.Keys)
                 this.Remove(key);
             this.subject.OnCompleted();
