@@ -6,6 +6,7 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 
 namespace Reactive.Collections
 {
@@ -15,7 +16,7 @@ namespace Reactive.Collections
         private readonly Subject<IObservable<KeyValuePair<TKey, TValue>>> subject;
         private readonly IObservable<KeyValuePair<TKey, TValue>> notifier;
         private readonly Func<TKey, Element> initializer;
-        private bool isDisposed;
+        private int isDisposed;
 
         private struct Element : IDisposable
         {
@@ -98,13 +99,12 @@ namespace Reactive.Collections
                     .ToObservable(DefaultScheduler.Instance))
                 .Merge(this.subject).Merge().Publish().RefCount();
             this.initializer = key => CreateElement(key, initial);
-            this.isDisposed = false;
+            this.isDisposed = 0;
         }
 
         public void Dispose()
         {
-            if (this.isDisposed) return;
-            this.isDisposed = true;
+            if (Interlocked.Exchange(ref this.isDisposed, 1) != 0) return;
             foreach (var key in this.dictionary.Keys)
                 this.Remove(key);
             this.subject.OnCompleted();
