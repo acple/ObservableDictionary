@@ -92,7 +92,7 @@ namespace Reactive.Collections
             this.subject = new Subject<IObservable<KeyValuePair<TKey, TValue>>>();
             this.notifier = Observable
                 .Defer(() => this.dictionary
-                    .Select(element => element.Value.Subject.Skip(1).Select(x => new KeyValuePair<TKey, TValue>(element.Key, x)))
+                    .Select(item => item.Value.Subject.Skip(1).Select(x => new KeyValuePair<TKey, TValue>(item.Key, x)))
                     .ToObservable(DefaultScheduler.Instance))
                 .Merge(this.subject).Merge().Publish().RefCount();
             this.initializer = key => CreateElement(key, initial);
