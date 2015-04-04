@@ -50,8 +50,10 @@ namespace Reactive.Collections
         {
             Element element;
             while (!this.dictionary.TryGetValue(key, out element))
-                if (this.dictionary.TryAdd(key, CreateElement(key, value)))
+                if (this.dictionary.TryAdd(key, element = CreateElement(key, value)))
                     return;
+                else
+                    element.Dispose();
             element.Subject.OnNext(value);
         }
 
