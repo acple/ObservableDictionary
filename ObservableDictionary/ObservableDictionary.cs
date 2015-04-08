@@ -35,7 +35,6 @@ namespace Reactive.Collections
             {
                 this.Disposable.Dispose();
                 this.Subject.OnCompleted();
-                this.Subject.Dispose();
             }
         }
 
@@ -108,7 +107,6 @@ namespace Reactive.Collections
             foreach (var key in this.dictionary.Keys)
                 this.Remove(key);
             this.subject.OnCompleted();
-            this.subject.Dispose();
         }
 
         public bool IsDisposed => this.isDisposed != 0;
