@@ -83,6 +83,7 @@ namespace Reactive.Collections
 
         private Element CreateElement(TKey key, TValue value)
         {
+            if (this.IsDisposed) throw new ObjectDisposedException(string.Empty);
             var element = new Element(value);
             this.subject.OnNext(element.Subject.Select(x => new KeyValuePair<TKey, TValue>(key, x)));
             return element;
@@ -104,8 +105,10 @@ namespace Reactive.Collections
         public void Dispose()
         {
             if (Interlocked.Exchange(ref this.isDisposed, 1) != 0) return;
-            foreach (var key in this.dictionary.Keys)
-                this.Remove(key);
+            do
+                foreach (var key in this.dictionary.Keys)
+                    this.Remove(key);
+            while (!this.dictionary.IsEmpty);
             this.subject.OnCompleted();
         }
 
